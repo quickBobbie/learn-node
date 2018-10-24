@@ -1,0 +1,19 @@
+{
+  "server" : {
+    "port" : 4000
+  },
+
+  "database" : {
+    "host" : "localhost",
+    "port" : 27017,
+    "name" : "nodelearn",
+    "params" : {
+      "useCreateIndex": true,
+      "useNewUrlParser": true
+    }
+  },
+
+  "client" : {
+    "origin" : "http://localhost:3000"
+  }
+}

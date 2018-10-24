@@ -1,0 +1,11 @@
+{
+  "secret" : "this is secret key",
+  "params" : {
+    "session" : false
+  },
+  "fields" : {
+    "usernameField" : "login",
+    "passwordField" : "password"
+  },
+  "authModule" : "user"
+}
