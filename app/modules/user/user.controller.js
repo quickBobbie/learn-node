@@ -44,6 +44,11 @@ module.exports.signup = (req, res, next) => {
                 .then(user => {
                     const token = jwt.sign({ id : user._id }, req.secret);
 
+                    user = user.toJSON();
+
+                    delete user.login;
+                    delete  user.password;
+
                     return res.json({ user, token, status });
                 })
                 .catch(err => {
