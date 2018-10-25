@@ -9,6 +9,7 @@ module.exports.getUserByFields = (login, password, callback) => {
                 return callback(null, false);
             }
 
+
             return callback(null, user);
         })
         .catch(err => callback(err, null));

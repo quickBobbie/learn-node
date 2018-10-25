@@ -90,15 +90,11 @@ module.exports.updateData = (req, res, next) => {
         } else if (key !== "oldPassword" || key !== "newPassword") data[key] = req.body[key];
     }
 
-    console.log(req.body)
-
     if (Object.keys(req.body).length === 2 && req.body.oldPassword && req.body.newPassword) return next();
 
     if (Object.keys(req.body).length === 0) {
         return res.json({ message : "It is not possible to change the data, as they are empty, or they coincide with the initial ones." });
     }
-
-    console.log(Object.keys(req.body).length)
 
     if (Object.keys(req.body).length === 1 && req.body.birthday){
         let reqDate = new Date(req.body.birthday);
@@ -182,9 +178,10 @@ module.exports.updatePassword = (req, res) => {
 };
 
 module.exports.delete = (req, res) => {
-    User.deleteOne({ _id : req.user })
-        .then(() => {
-            return res.json({ message : "Account deleted." })
+    User.findOne({ _id : req.user })
+        .then(user => {
+            user.remove();
+            res.json({ message : "Account deleted" })
         })
         .catch(err => {
             res.status(500);

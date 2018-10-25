@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+const Home = require('../home/home.model');
+
 const userSchema = new mongoose.Schema({
     login : {
         type : String,
@@ -17,6 +19,18 @@ const userSchema = new mongoose.Schema({
     sex : String,
     username : String,
     birthday : Date
+});
+
+userSchema.post('remove', (doc, next) => {
+    Home.find({ uid : doc._id })
+        .then(homes => {
+            homes.forEach(home => {
+                home.remove();
+            });
+
+            next();
+        })
+        .catch(err => next(err));
 });
 
 module.exports = mongoose.model('user', userSchema);

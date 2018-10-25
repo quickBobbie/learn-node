@@ -1,13 +1,23 @@
 const mongoose = require('mongoose');
 
-const roomSchema = mongoose.Schema({
-   roomName : String
-});
+const Room = require('../room/room.model');
 
 const homeSchema = mongoose.Schema({
     uid : String,
-    homeName : String,
-    rooms : [ roomSchema ]
+    homeName : String
 });
+
+homeSchema.post('remove', (doc, next) => {
+    console.log(doc);
+    Room.find({ hid : this._id })
+        .then(rooms => {
+            rooms.forEach(room => {
+                room.remove();
+            });
+
+            next();
+        })
+        .catch(err => next(err));
+})
 
 module.exports = mongoose.model('home', homeSchema);
