@@ -21,16 +21,17 @@ const userSchema = new mongoose.Schema({
     birthday : Date
 });
 
-// userSchema.post('remove', (doc, next) => {
-//     Home.find({ uid : doc._id })
-//         .then(homes => {
-//             homes.forEach(home => {
-//                 home.remove();
-//             });
-//
-//             next();
-//         })
-//         .catch(err => next(err));
-// });
+userSchema.post('remove', (doc, next) => {
+    Home.find({ uid : doc._id })
+        .then(homes => {
+            homes.forEach(home => {
+                home.remove();
+            });
+
+            next();
+        })
+        .catch(err => next(err));
+});
+
 
 module.exports = mongoose.model('user', userSchema);

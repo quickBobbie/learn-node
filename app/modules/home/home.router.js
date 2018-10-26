@@ -4,6 +4,8 @@ const controller = require('./home.controller');
 
 const roomRouter = require('../room/room.router');
 
+router.get('/', controller.get);
+
 router.put('/', controller.create);
 router.put('/:id', controller.update);
 

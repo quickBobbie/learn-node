@@ -1,5 +1,18 @@
 const Home = require('./home.model');
 
+module.exports.get = (req, res) => {
+    Home.find({ uid : req.user })
+        .populate('room')
+        .exec()
+        .then(homes => {
+            res.json({ homes })
+        })
+        .catch(err => {
+            res.status(500);
+            res.json({ err });
+        });
+}
+
 module.exports.create = (req, res) => {
     for (let key in req.body)
         req.body[key] = req.body[key].replace(/<[^>]+>/g,'').trim();
@@ -7,6 +20,8 @@ module.exports.create = (req, res) => {
     req.body.uid = req.user;
 
     let home = new Home(req.body);
+
+    console.log(Home)
 
     home.save()
         .then(home => {
@@ -74,6 +89,8 @@ module.exports.validateHomeId = (req, res, next) => {
     Home.findById(req.params.homeId)
         .then(home => {
             if (!home || home.uid !== req.user) return res.json({ message : "Home not found.", user : req.user });
+
+            req.homeId = req.params.homeId
 
             return next();
         })

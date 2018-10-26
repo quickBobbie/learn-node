@@ -6,7 +6,7 @@ module.exports.create = (req, res, next) => {
     if (!req.body.roomName || req.body.roomName === 'undefined') return res.json({ message : 'Invalid room name.' });
 
     let room = new Room({
-        hid : req.params.homeId,
+        hid : req.homeId,
         roomName : req.body.roomName
     });
 
@@ -27,7 +27,7 @@ module.exports.update = (req, res) => {
 
     Room.findById(req.params.roomId)
         .then(room => {
-            if (!room || room.hid !== req.params.homeId) {
+            if (!room || room.hid !== req.homeId) {
                 return res.json({ message : "Room not found." });
             }
 
@@ -51,7 +51,7 @@ module.exports.delete = (req, res) => {
 
     Room.findById(req.params.roomId)
         .then(room => {
-            if (!room || room.hid !== req.params.homeId) return res.json({ message : 'Room not found.' });
+            if (!room || room.hid !== req.homeId) return res.json({ message : 'Room not found.' });
 
             room.remove()
                 .then(() => res.json({ message : "Room deleted." }))

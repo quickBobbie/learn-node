@@ -14,7 +14,7 @@ app.use(bodyParser.urlencoded({ extended : true }));
 app.use(passport.initialize());
 app.use(router);
 
-server.start(app);
+server(app);
 
 let db = database.connect();
 
