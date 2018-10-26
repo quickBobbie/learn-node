@@ -20,8 +20,8 @@ let db = database.connect();
 
 db.on('open', () => {
     console.log(`Connect [${ db.name }] database`);
-})
+});
 
 db.on('error', () => {
     console.log(`[${ db.name }] connection error`);
-})
+});

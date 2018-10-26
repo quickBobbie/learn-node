@@ -7,16 +7,16 @@ const homeSchema = mongoose.Schema({
     homeName : String
 });
 
-homeSchema.post('remove', (doc, next) => {
-    Room.find({ hid : this._id })
-        .then(rooms => {
-            rooms.forEach(room => {
-                room.remove();
-            });
-
-            next();
-        })
-        .catch(err => next(err));
-});
+// homeSchema.post('remove', (doc, next) => {
+//     Room.find({ hid : doc._id })
+//         .then(rooms => {
+//             rooms.forEach(room => {
+//                 room.remove();
+//             });
+//
+//             next();
+//         })
+//         .catch(err => next(err));
+// });
 
 module.exports = mongoose.model('home', homeSchema);
