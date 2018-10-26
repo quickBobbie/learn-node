@@ -1,10 +1,10 @@
 const router = require('express').Router();
 
-const constroller = require('./room.controller');
+const controller = require('./room.controller');
 
-router.put('/', controller.save);
-router.put('/:id', constroller.update);
+router.put('/', controller.create);
+router.put('/:roomId', controller.update);
 
-router.delete('/', controller.delete);
+router.delete('/:roomId', controller.delete);
 
 module.exports = router;

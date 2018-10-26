@@ -8,7 +8,6 @@ const homeSchema = mongoose.Schema({
 });
 
 homeSchema.post('remove', (doc, next) => {
-    console.log(doc);
     Room.find({ hid : this._id })
         .then(rooms => {
             rooms.forEach(room => {
@@ -18,6 +17,6 @@ homeSchema.post('remove', (doc, next) => {
             next();
         })
         .catch(err => next(err));
-})
+});
 
 module.exports = mongoose.model('home', homeSchema);

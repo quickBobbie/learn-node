@@ -1,45 +1,33 @@
-const Home = require('../home/home.model');
 const Room = require('./room.model');
 
-module.exports.save = (req, res) => {
+module.exports.create = (req, res, next) => {
     req.body.roomName = req.body.roomName.replace(/<[^>]+>/g,'').trim();
 
-    if (!req.body.homeId) return res.json({ message : "Not home id." });
     if (!req.body.roomName || req.body.roomName === 'undefined') return res.json({ message : 'Invalid room name.' });
 
-    Home.findById(req.body.homeId)
-        .then(home => {
-            if (!home || home.uid !== req.user) {
-                return res.json({ message : "Home not found." });
-            }
+    let room = new Room({
+        hid : req.params.homeId,
+        roomName : req.body.roomName
+    });
 
-            let room = new Room({
-                homeId : home._id,
-                roomName : req.body.roomName
-            });
-
-            room.save()
-                .then(room => res.json({ room }))
-                .catch(err => {
-                    res.status(500);
-                    res.json({ err });
-                })
-        })
+    room.save()
+        .then(room => res.json({ room }))
         .catch(err => {
             res.status(500);
             res.json({ err });
-        })
+        });
 };
 
 module.exports.update = (req, res) => {
-    req.body.roomName = req.body.roomName.replace(/<[^>]+>/g,'').trim();
+    if (!req.params.roomId) return res.json({ message : "Not room id." });
 
-    if (!req.body.roomId) return res.json({ message : "Not room id." });
+    req.body.roomName = req.body.roomName.replace(/<[^>]+>/g, '').trim();
+
     if (!req.body.roomName || req.body.roomName === 'undefined') return res.json({ message : "Invalid room name" });
 
-    Room.findById(roomId)
+    Room.findById(req.params.roomId)
         .then(room => {
-            if (!room) {
+            if (!room || room.hid !== req.params.homeId) {
                 return res.json({ message : "Room not found." });
             }
 
@@ -59,5 +47,21 @@ module.exports.update = (req, res) => {
 };
 
 module.exports.delete = (req, res) => {
+    if (!req.params.roomId) return res.json({ message : "Not room id." });
 
+    Room.findById(req.params.roomId)
+        .then(room => {
+            if (!room || room.hid !== req.params.homeId) return res.json({ message : 'Room not found.' });
+
+            room.remove()
+                .then(() => res.json({ message : "Room deleted." }))
+                .catch(err => {
+                    res.status(500);
+                    res.json({ err });
+                })
+        })
+        .catch(err => {
+            res.status(500);
+            res.json({ err });
+        })
 };

@@ -33,4 +33,11 @@ userSchema.post('remove', (doc, next) => {
         .catch(err => next(err));
 });
 
+userSchema.pre("save", next => {
+    Home.find({ uid : this._id })
+        .then(homes => {
+            next(homes);
+        })
+})
+
 module.exports = mongoose.model('user', userSchema);
