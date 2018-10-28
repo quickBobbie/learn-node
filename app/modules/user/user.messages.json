@@ -1,0 +1,11 @@
+{
+    "required" : "You haven't filled required fields.",
+    "email" : "Invalid email address.",
+    "user" : "User exists.",
+    "nouser" : "User doesn't exist.",
+    "birthday" : "Date of birth exceeds today's date, or corresponds to the existing date of birth.",
+    "data" : "It is not possible to change the data, as they are empty, or they coincide with the initial ones.",
+    "oldpwd" : "It is not possible to change only the password, since you did not enter the old password, or it does not match the original one.",
+    "newpwd" : "It is not possible to change only the password, since it matches the original.",
+    "success" : "Success."
+}

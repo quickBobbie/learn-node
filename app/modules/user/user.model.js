@@ -18,7 +18,13 @@ const userSchema = new mongoose.Schema({
     },
     sex : String,
     username : String,
-    birthday : Date
+    birthday : Date,
+    homes : [
+        {
+            type : mongoose.Schema.Types.ObjectId,
+            ref : 'home'
+        }
+    ]
 });
 
 userSchema.post('remove', (doc, next) => {
@@ -32,6 +38,5 @@ userSchema.post('remove', (doc, next) => {
         })
         .catch(err => next(err));
 });
-
 
 module.exports = mongoose.model('user', userSchema);

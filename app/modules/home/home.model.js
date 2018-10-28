@@ -25,4 +25,24 @@ homeSchema.post('remove', (doc, next) => {
         .catch(err => next(err));
 });
 
+homeSchema.post('save', (doc, next) => {
+    const User = mongoose.model('user');
+    
+    User.findById(doc.uid)
+        .then(user => {
+            for (let home of user.homes) {
+                if (home.toString() === doc._id.toString()) {
+                    return next();
+                }
+            }
+
+            user.homes.push(doc._id);
+
+            user.save()
+                .then(() => next())
+                .catch(err => next(err));
+        })
+        .catch(err => next(err));
+});
+
 module.exports = mongoose.model('home', homeSchema);

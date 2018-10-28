@@ -5,11 +5,22 @@ const roomSchema = mongoose.Schema({
     roomName : String
 });
 
-roomSchema.post('save', (room, next) => {
-    mongoose.model('home').update({ _id : room.hid }, { $push : { rooms : room._id } })
-        .then(() => {
-            console.log("ok")
-            next();
+roomSchema.post('save', (doc, next) => {
+    const Home = mongoose.model('home')
+    
+    Home.findById(doc.hid)
+        .then(home => {
+            for (let room of home.rooms) {
+                if (room.toString() === doc._id.toString()) {
+                    return next();
+                }
+            }
+
+            home.rooms.push(doc._id);
+
+            home.save()
+                .then(() => next())
+                .catch(err => next(err));
         })
         .catch(err => next(err));
 });

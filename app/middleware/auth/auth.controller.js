@@ -1,14 +1,14 @@
-const { authModule } = require('./auth.config');
+const { authModule, populate } = require('./auth.config');
 
 const Model = require(`../../modules/${ authModule }/${ authModule }.model`);
 
 module.exports.getUserByFields = (login, password, callback) => {
     Model.findOne({ login })
+        .populate(populate)
         .then(user => {
             if (!user || password !== user.password) {
                 return callback(null, false);
             }
-
 
             return callback(null, user);
         })

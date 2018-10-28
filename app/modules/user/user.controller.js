@@ -2,7 +2,9 @@ const jwt = require('jsonwebtoken');
 
 const User = require('./user.model');
 
-module.exports.signup = (req, res, next) => {
+const messages = require('./user.messages');
+
+module.exports.signup = (req, res) => {
     for (let key in req.body) {
         req.body[key] = req.body[key].replace(/<[^>]+>/g,'').trim();
 
@@ -13,28 +15,22 @@ module.exports.signup = (req, res, next) => {
 
     for(let field of requiredFields){
         if (!field) {
-            res.json({ message : "Required fields." });
-            return next();
+            return res.json({ message : messages.required });
         }
     }
 
     if (req.body.email.indexOf('@') === -1 || req.body.email.indexOf('.') === -1) {
-        res.json({ message : "Invalid email." });
-        return next();
+        return res.json({ message : messages.email });
     }
 
     User.findOne({ login : req.body.login })
+        .exec()
         .then(user => {
             if (user) {
-                res.json({ message : "User exists." });
-                return next();
+                return res.json({ message : messages.user });
             }
 
-            let status = "";
-
             if (new Date(req.body.birthday) > new Date()) {
-                status = "Date of birth can not be more than today's date.";
-
                 delete req.body.birthday;
             }
 
@@ -47,20 +43,19 @@ module.exports.signup = (req, res, next) => {
                     user = user.toJSON();
 
                     delete user.login;
-                    delete  user.password;
+                    delete user.password;
+                    delete user.email;
 
-                    return res.json({ user, token, status });
+                    res.json({ user, token });
                 })
                 .catch(err => {
                     res.status(500);
                     res.json({ err });
-                    return next();
                 });
         })
         .catch(err => {
             res.status(500);
             res.json({ err });
-            return next();
         })
 };
 
@@ -71,11 +66,12 @@ module.exports.signin = (req, res) => {
 
     delete req.user.login;
     delete req.user.password;
+    delete req.user.email;
 
-    res.json({ user : req.user, token })
+    res.json({ user : req.user, token });
 };
 
-module.exports.updateData = (req, res, next) => {
+module.exports.updateData = (req, res) => {
     let data = {};
 
     for (let key in req.body) {
@@ -87,50 +83,43 @@ module.exports.updateData = (req, res, next) => {
             req.body[key] === req.user[key]
         ) {
             delete req.body[key];
-        } else if (key !== "oldPassword" || key !== "newPassword") data[key] = req.body[key];
+        } else {
+            data[key] = req.body[key];
+        }
     }
 
-    if (Object.keys(req.body).length === 2 && req.body.oldPassword && req.body.newPassword) return next();
-
-    if (Object.keys(req.body).length === 0) {
-        return res.json({ message : "It is not possible to change the data, as they are empty, or they coincide with the initial ones." });
+    if (Object.keys(data).length === 0) {
+        return res.json({ message : messages.data });
     }
 
-    if (Object.keys(req.body).length === 1 && req.body.birthday){
-        let reqDate = new Date(req.body.birthday);
-        let userDate = new Date(req.user.birthday);
+    if (Object.keys(data).length === 1 && data.birthday){
+        let reqDate = new Date(data.birthday);
+        let userDate = new Date(data.birthday);
         let now = new Date();
 
-        if (reqDate.toString() === userDate.toString()){
-            return res.json({ message : "Change only the date of birth is not possible, since it is equal to the original date of birth." });
-        } else if (reqDate > now) {
-            return res.json({ message : "It is not possible to change only the date of birth, since it is larger than today's date." });
+        if (reqDate === userDate || reqDate > now){
+            return res.json({ message : messages.birthday });
         }
     }
 
     User.findById(req.user._id)
         .then(user => {
             if (!user) {
-                return res.json({ message : "User does not exist." });
+                return res.json({ message : messages.nouser });
             }
 
-            if (data.birthday && new Date(data.birthday) > new Date()) delete data.birthday;
+            if (data.birthday && new Date(data.birthday) > new Date()) {
+                delete data.birthday;
+            } else {
+                data.birthday = new Date(data.birthday);
+            }
 
             for (let key in data) {
                 user.set(key, data[key]);
             }
 
             user.save()
-                .then(user => {
-                    user = user.toJSON();
-
-                    delete user.login;
-                    delete user.password;
-
-                    res.json({ user });
-
-                    if (req.body.oldPassword && req.body.newPassword) return next();
-                })
+                .then(() => res.json({ message : messages.success, data }))
                 .catch(err => {
                     res.status(500);
                     res.json({ err });
@@ -149,12 +138,16 @@ module.exports.updatePassword = (req, res) => {
         if (req.body[key] === "" || req.body[key] === 'undefined' || !req.body[key]) delete req.body[key];
     }
 
-    if (!req.body.oldPassword || req.body.oldPassword !== req.user.password) {
-        return res.json({ message : "It is not possible to change only the password, since you did not enter the old password, or it does not match the original one." });
+    if (!req.body.oldPassword || !req.body.newPassword) {
+        return res.json({ message : messages.required });
+    }
+
+    if (req.body.oldPassword !== req.user.password) {
+        return res.json({ message : messages.oldpwd });
     }
 
     if (req.body.oldPassword === req.body.newPassword && req.user.password === req.body.newPassword) {
-        return res.json({ message : "It is not possible to change only the password, since it matches the original." });
+        return res.json({ message : messages.newpwd });
     }
 
     User.findById(req.user._id)
@@ -163,7 +156,7 @@ module.exports.updatePassword = (req, res) => {
 
             user.save()
                 .then(() => {
-                    return res.json({ message : "Password updated." });
+                    return res.json({ message : messages.success });
                 })
                 .catch(err => {
                     res.status(500);
@@ -181,7 +174,7 @@ module.exports.delete = (req, res) => {
     User.findOne({ _id : req.user })
         .then(user => {
             user.remove();
-            res.json({ message : "Account deleted" })
+            res.json({ message : messages.success })
         })
         .catch(err => {
             res.status(500);

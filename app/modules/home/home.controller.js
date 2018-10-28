@@ -1,64 +1,39 @@
 const Home = require('./home.model');
 
-module.exports.get = (req, res) => {
-    Home.find({ uid : req.user })
-        .populate('room')
-        .exec()
-        .then(homes => {
-            res.json({ homes })
-        })
-        .catch(err => {
-            res.status(500);
-            res.json({ err });
-        });
-}
+const messages = require('./home.messages');
 
 module.exports.create = (req, res) => {
     for (let key in req.body)
         req.body[key] = req.body[key].replace(/<[^>]+>/g,'').trim();
 
-    req.body.uid = req.user;
+    let home = {
+        uid : req.user,
+        homeName : req.body.homeName
+    };
 
-    let home = new Home(req.body);
-
-    console.log(Home)
-
-    home.save()
-        .then(home => {
-            return res.json({ home });
-        })
+    Home.create(home)
+        .then(home => res.json({ home }))
         .catch(err => {
             res.status(500);
-            return res.json({ err });
-        });
+            res.json({ err });
+        })
 };
 
 module.exports.update = (req, res) => {
-    if (!req.params.id) return res.json({ message : "Not home id." });
+    if (!req.params.id) return res.json({ message : messages.noid });
+    if (!req.body.homeName) return res.json({ message : messages.noname });
 
     Home.findById(req.params.id)
         .then(home => {
-            if (!home) return res.json({ message : "House does not exist." });
+            if (!home || home.uid !== req.user) return res.json({ message : messages.nohome });
 
-            if (home.uid !== req.user) return res.json({ message : "This is not your home." });
-
-            if (req.body.homeName) home.set('homeName', req.body.homeName);
-
-            if (req.body.rooms) {
-                for (let reqRoom of req.body.rooms) {
-                    for (let room of home.rooms) {
-                        if (reqRoom.id === room._id) room.set('roomName', reqRoom.roomName);
-                    }
-                }
-            }
+            home.set("homeName", req.body.homeName);
 
             home.save()
-                .then(home => {
-                    return res.json({ home });
-                })
+                .then(() => res.json({ message : messages.success, homeName : home.homeName }))
                 .catch(err => {
                     res.status(500);
-                    return res.json({ err });
+                    res.json({ err });
                 })
         })
         .catch(err => {
@@ -68,34 +43,17 @@ module.exports.update = (req, res) => {
 };
 
 module.exports.delete = (req, res) => {
-    if (!req.params.id) return res.json({ message : "Not home id." });
+    if (!req.params.id) return res.json({ message : messages.noid });
 
     Home.findById(req.params.id)
         .then(home => {
-            if (!home || home.uid !== req.user) return res.json({ message : "Home not found." });
+            if (!home || home.uid !== req.user) return res.json({ message : messages.nohome });
 
             home.remove()
-                .then(() => res.json({ message : "Home deleted." }))
+                .then(() => res.json({ message : messages.success }))
                 .catch(err => {
                     res.status(500);
                     res.json({ err });
                 })
         })
 };
-
-module.exports.validateHomeId = (req, res, next) => {
-    if (!req.params.homeId) return res.json({ message : "Not home id." });
-
-    Home.findById(req.params.homeId)
-        .then(home => {
-            if (!home || home.uid !== req.user) return res.json({ message : "Home not found.", user : req.user });
-
-            req.homeId = req.params.homeId
-
-            return next();
-        })
-        .catch(err => {
-            res.status(500);
-            res.json({ err });
-        });
-}
