@@ -25,4 +25,11 @@ roomSchema.post('save', (doc, next) => {
         .catch(err => next(err));
 });
 
+roomSchema.post('remove', (doc, next) => {
+    mongoose.model('home')
+        .updateOne({ _id : doc.hid }, { $pull : { rooms : doc._id } })
+        .then(() => next())
+        .catch(err => next(err));
+});
+
 module.exports = mongoose.model('room', roomSchema);

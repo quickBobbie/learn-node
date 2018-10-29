@@ -110,8 +110,6 @@ module.exports.updateData = (req, res) => {
 
             if (data.birthday && new Date(data.birthday) > new Date()) {
                 delete data.birthday;
-            } else {
-                data.birthday = new Date(data.birthday);
             }
 
             for (let key in data) {
@@ -119,7 +117,7 @@ module.exports.updateData = (req, res) => {
             }
 
             user.save()
-                .then(() => res.json({ message : messages.success, data }))
+                .then(() => res.json({ message : messages.success, updated : data }))
                 .catch(err => {
                     res.status(500);
                     res.json({ err });

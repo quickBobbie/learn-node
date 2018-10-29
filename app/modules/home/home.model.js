@@ -14,13 +14,16 @@ const homeSchema = mongoose.Schema({
 });
 
 homeSchema.post('remove', (doc, next) => {
-    Room.find({ hid : doc._id })
+    Room.remove({ _id : {$in: doc.rooms} })
         .then(rooms => {
             rooms.forEach(room => {
                 room.remove();
             });
 
-            next();
+            mongoose.model('user')
+                .updateOne({ _id : doc.uid }, { $pull : { homes : doc._id } })
+                .then(() => next())
+                .catch(err => next(err));
         })
         .catch(err => next(err));
 });
